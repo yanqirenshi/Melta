@@ -1,0 +1,63 @@
+:root {
+  --bg: #fbfaf7;
+  --text: #2b2b2b;
+  --muted: #8a8a8a;
+  --highlight: #ffe58a;
+  --accent: #e0a800;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Meiryo', sans-serif;
+}
+
+.reader-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid #e6e3dc;
+  z-index: 1;
+}
+.reader-title { font-weight: bold; flex: 1; }
+.reader-hint, .reader-count { color: var(--muted); font-size: 14px; }
+.reader-progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 3px;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
+.reader-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40vh 24px;   /* 最初と最後の行も画面中央に来られるように余白をとる */
+  font-size: 20px;
+  line-height: 2;
+}
+.reader-body h2 { font-size: 26px; margin: 48px 0 16px; }
+.reader-body p { margin: 0 0 32px; }
+
+/* 一行ずつ縦に並べる */
+.line {
+  display: block;
+  padding: 2px 10px;
+  margin: 0 -10px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: background 0.15s, opacity 0.15s;
+}
+.line.is-current {
+  background: var(--highlight);
+  opacity: 1;
+}
