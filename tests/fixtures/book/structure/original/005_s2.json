@@ -90,6 +90,39 @@
      "src": "figures/p004_1_0.png",
      "text": ["1", "入力", "2", "出カ", "3.", "保存"],
      "source": ["p004_1#4"]
+    },
+    {
+     "type": "paragraph",
+     "id": "p7",
+     "source": ["p004_1#5"],
+     "sentences": [
+      {"id": "p7.1", "text": "彼は \"引用\" と言い、\\ と C:\\dir\\file を書いた。"},
+      {"id": "p7.2", "text": "タブ\tの後に😀と𠮷、末尾に空白と改行。 \n"}
+     ]
+    },
+    {
+     "type": "caption",
+     "id": "c4",
+     "text": "表3 \"記号\" \\ と\tタブ\n二行目 ",
+     "source": ["p004_1#6"]
+    },
+    {
+     "type": "table",
+     "id": "t3",
+     "n_row": 1,
+     "n_col": 2,
+     "cells": [
+      {"row": 0, "col": 0, "row_span": 1, "col_span": 1, "text": "\"A\" \\ B"},
+      {"row": 0, "col": 1, "row_span": 1, "col_span": 1, "text": "行1\n行2\t末尾 😀\n"}
+     ],
+     "source": ["p004_1#7"]
+    },
+    {
+     "type": "figure",
+     "id": "f3",
+     "src": "figures/p004_1_1.png",
+     "text": ["\"図\" \\", "😀\n二行目\n"],
+     "source": ["p004_1#8"]
     }
    ]
   }

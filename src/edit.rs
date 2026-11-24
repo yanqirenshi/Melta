@@ -176,7 +176,7 @@ fn apply_text(target: &mut Value, elem_id: &str, base: &str, new_text: Value, no
     true
 }
 
-fn parse_cell(s: &str) -> Res<(u64, u64)> {
+pub fn parse_cell(s: &str) -> Res<(u64, u64)> {
     let (r, c) = s.split_once(',').ok_or_else(|| format!("--cell は <row>,<col> の形で指定してください（{s:?}）"))?;
     let r = r.trim().parse::<u64>().map_err(|_| format!("--cell の row が数ではありません: {r:?}"))?;
     let c = c.trim().parse::<u64>().map_err(|_| format!("--cell の col が数ではありません: {c:?}"))?;
@@ -184,6 +184,9 @@ fn parse_cell(s: &str) -> Res<(u64, u64)> {
 }
 
 pub fn set_text(out: &Path, edition: &str, id: &str, text: &str, note: Option<&str>, cell: Option<&str>, index: Option<usize>) -> Res<String> {
+    if cell.is_some() && index.is_some() {
+        return Err("--cell と --index は同時に指定できません".to_string());
+    }
     require_editable(edition)?;
     let mut ed = Edition::load(out, edition)?;
     let base = ed.base()?;
@@ -397,4 +400,13 @@ fn apply_figure(node: &mut Value, id: &str, base: &str, i: usize, new_arr: Vec<V
         obj.remove("notes");
     }
     true
+}
+
+/// 表のセルを（row, col）で探す。結合で隠れたマスにはセルが無いので、見つからない。
+pub fn find_cell(table: &Value, r: u64, c: u64) -> Option<&Value> {
+    table
+        .get("cells")?
+        .as_array()?
+        .iter()
+        .find(|x| x.get("row").and_then(|v| v.as_u64()) == Some(r) && x.get("col").and_then(|v| v.as_u64()) == Some(c))
 }

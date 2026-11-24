@@ -32,6 +32,15 @@ pub enum Command {
         /// 1 ファイルをそのまま出す
         #[arg(long)]
         file: Option<String>,
+        /// 表のセル 1 つだけ出す（<row>,<col>）
+        #[arg(long)]
+        cell: Option<String>,
+        /// 図の中の文字の n 番目だけ出す（0 から）
+        #[arg(long)]
+        index: Option<usize>,
+        /// JSON にせず、文字そのものを出す（エスケープ・引用符・末尾の改行なし）
+        #[arg(long)]
+        text: bool,
     },
     /// 要素の一覧（入れ子の深さ・type・ID・大きさ・先頭の文字）を、読み順に出す。読むだけ
     Outline {
@@ -56,7 +65,10 @@ pub enum Command {
         edition: String,
         id: String,
         #[arg(long, allow_hyphen_values = true)]
-        text: String,
+        text: Option<String>,
+        /// 新しい文字をファイルから読む（そのまま。- は標準入力）
+        #[arg(long, allow_hyphen_values = true)]
+        text_file: Option<String>,
         #[arg(long, allow_hyphen_values = true)]
         note: Option<String>,
         /// 表のセル（<row>,<col>）
@@ -147,7 +159,19 @@ pub fn run(cli: Cli) -> Res<i32> {
                 );
             }
         }
-        Command::Show { out, edition, id, rows, file } => {
+        Command::Show { out, edition, id, rows, file, cell, index, text } => {
+            if file.is_some() && (rows.is_some() || cell.is_some() || index.is_some() || text) {
+                return Err("--file は、--rows、--cell、--index、--text と一緒に使えません".to_string());
+            }
+            if cell.is_some() && rows.is_some() {
+                return Err("--cell と --rows は同時に指定できません".to_string());
+            }
+            if cell.is_some() && index.is_some() {
+                return Err("--cell と --index は同時に指定できません".to_string());
+            }
+            if text && rows.is_some() {
+                return Err("--text は --rows と一緒に使えません".to_string());
+            }
             match (&file, &id) {
                 (Some(_), Some(_)) => return Err("ID と --file は同時に指定できません".to_string()),
                 (None, None) => return Err("ID か --file のどちらか 1 つを指定してください".to_string()),
@@ -162,6 +186,12 @@ pub fn run(cli: Cli) -> Res<i32> {
                 let id = id.ok_or("ID か --file を指定してください")?;
                 let ed = Edition::load(&out, &edition)?;
                 let (pi, ptr) = ed.find_id(&id).ok_or_else(|| format!("ID {id} の要素が見つかりません"))?;
+                let found = ed.parts[pi].value.pointer(&ptr).unwrap();
+                if cell.is_some() || index.is_some() || text {
+                    let out_text = show_one(found, &id, cell.as_deref(), index, text)?;
+                    print!("{out_text}");
+                    return Ok(0);
+                }
                 let mut node = ed.parts[pi].value.pointer(&ptr).unwrap().clone();
                 if let Some(r) = rows {
                     if str_of(&node, "type") != Some("table") {
@@ -206,7 +236,25 @@ pub fn run(cli: Cli) -> Res<i32> {
             }
         }
         Command::New { out, from, editor } => println!("{}", edit::new_edition(&out, &from, &editor)?),
-        Command::SetText { out, edition, id, text, note, cell, index } => {
+        Command::SetText { out, edition, id, text, text_file, note, cell, index } => {
+            let text = match (text, text_file) {
+                (Some(_), Some(_)) => return Err("--text と --text-file は同時に指定できません".to_string()),
+                (None, None) => return Err("--text か --text-file のどちらか 1 つを指定してください".to_string()),
+                (Some(t), None) => t,
+                (None, Some(p)) => {
+                    let bytes = if p == "-" {
+                        let mut b = Vec::new();
+                        std::io::Read::read_to_end(&mut std::io::stdin(), &mut b).map_err(|e| format!("標準入力を読めません: {e}"))?;
+                        b
+                    } else {
+                        fs::read(&p).map_err(|e| format!("{p} を読めません: {e}"))?
+                    };
+                    if bytes.is_empty() {
+                        return Err("--text-file の中身が空です（失敗したパイプの結果かもしれません）。文を空にする指定は --text \"\" を使ってください".to_string());
+                    }
+                String::from_utf8(bytes).map_err(|_| "--text-file の中身が UTF-8 ではありません".to_string())?
+                }
+            };
             println!("{}", edit::set_text(&out, &edition, &id, &text, note.as_deref(), cell.as_deref(), index)?)
         }
         Command::Insert { out, edition, after, first_in, text, note } => {
@@ -269,5 +317,51 @@ fn outline_node(n: &Value, depth: usize, lines: &mut Vec<String>) {
         for c in n.get("children").and_then(|c| c.as_array()).into_iter().flatten() {
             outline_node(c, depth + 1, lines);
         }
+    }
+}
+
+fn sentences_text(n: &Value) -> String {
+    n.get("sentences")
+        .and_then(|s| s.as_array())
+        .map(|a| a.iter().map(|s| str_of(s, "text").unwrap_or("")).collect::<String>())
+        .unwrap_or_default()
+}
+
+/// `show` の --cell、--index、--text の出力。--text のときは、文字そのもの（改行も足さない）。
+/// JSON のときは、末尾に改行を付ける。
+fn show_one(node: &Value, id: &str, cell: Option<&str>, index: Option<usize>, text: bool) -> Res<String> {
+    let ty = str_of(node, "type");
+    let target: Value = if let Some(c) = cell {
+        if ty != Some("table") {
+            return Err(format!("--cell は表の ID にだけ使えます（{id}）"));
+        }
+        let (r, col) = edit::parse_cell(c)?;
+        edit::find_cell(node, r, col).ok_or_else(|| format!("表 {id} に、行 {r}・列 {col} のセルがありません"))?.clone()
+    } else if let Some(i) = index {
+        if ty != Some("figure") {
+            return Err(format!("--index は図の ID にだけ使えます（{id}）"));
+        }
+        let arr = node.get("text").and_then(|t| t.as_array()).cloned().unwrap_or_default();
+        arr.get(i).cloned().ok_or_else(|| format!("--index {i} は範囲外です（図 {id} の文字は {} 個）", arr.len()))?
+    } else {
+        node.clone()
+    };
+    if !text {
+        return Ok(format!("{}\n", dumps(&target, 0, false)));
+    }
+    if cell.is_some() {
+        return Ok(str_of(&target, "text").unwrap_or("").to_string());
+    }
+    if index.is_some() {
+        return Ok(target.as_str().unwrap_or("").to_string());
+    }
+    match ty {
+        None if node.get("sentences").is_some() => Ok(sentences_text(node)), // 箇条書きの item
+        None if node.get("text").map_or(false, |t| t.is_string()) => Ok(str_of(node, "text").unwrap_or("").to_string()), // センテンス
+        Some("paragraph") => Ok(sentences_text(node)),
+        Some("caption") => Ok(str_of(node, "text").unwrap_or("").to_string()),
+        Some("table") => Err(format!("表 {id} の --text には --cell <row>,<col> が要ります")),
+        Some("figure") => Err(format!("図 {id} の --text には --index <n> が要ります")),
+        _ => Err(format!("{id} には --text を使えません（センテンス・キャプション・パラグラフ・項目・表のセル・図の文字が対象です）")),
     }
 }
