@@ -1,0 +1,66 @@
+{
+ "version": 2,
+ "file": "004_s1.2.json",
+ "id": "s1.2",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "1 はじめに"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.2",
+   "level": 2,
+   "title": "1.2 表のある節",
+   "source": ["p003_1#0"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p4",
+     "source": ["p003_1#1"],
+     "sentences": [
+      {"id": "p4.1", "text": "表の前の段落です。"},
+      {"id": "p4.2", "text": "表を見てください。"}
+     ]
+    },
+    {
+     "type": "caption",
+     "id": "c2",
+     "text": "表1 小さな表",
+     "source": ["p003_1#2"]
+    },
+    {
+     "type": "table",
+     "id": "t1",
+     "n_row": 3,
+     "n_col": 2,
+     "cells": [
+      {"row": 0, "col": 0, "row_span": 1, "col_span": 1, "text": "項目"},
+      {"row": 0, "col": 1, "row_span": 1, "col_span": 1, "text": "値"},
+      {"row": 1, "col": 0, "row_span": 1, "col_span": 1, "text": "りんご"},
+      {"row": 1, "col": 1, "row_span": 1, "col_span": 1, "text": "3"},
+      {"row": 2, "col": 0, "row_span": 1, "col_span": 2, "text": "合計"}
+     ],
+     "source": ["p003_1#3"]
+    },
+    {
+     "type": "section",
+     "id": "s1.2.1",
+     "level": 3,
+     "title": "1.2.1 入れ子の見出し",
+     "source": ["p003_1#4"],
+     "children": [
+      {
+       "type": "paragraph",
+       "id": "p5",
+       "source": ["p003_1#5"],
+       "sentences": [
+        {"id": "p5.1", "text": "入れ子のセクションの本文です。"},
+        {"id": "p5.2", "text": "二つ目の文です。"}
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,90 @@
+{
+ "version": 2,
+ "file": "005_s2.json",
+ "id": "s2",
+ "ancestors": [],
+ "body": [
+  {
+   "type": "section",
+   "id": "s2",
+   "level": 1,
+   "title": "2 大きな表",
+   "source": ["p004_1#0"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p6",
+     "source": ["p004_1#1"],
+     "sentences": [
+      {"id": "p6.1", "text": "大きな表の前の段落です。"},
+      {"id": "p6.2", "text": "行は二十五あります。"}
+     ]
+    },
+    {
+     "type": "caption",
+     "id": "c3",
+     "text": "表2 大きな表",
+     "source": ["p004_1#2"]
+    },
+    {
+     "type": "table",
+     "id": "t2",
+     "n_row": 25,
+     "n_col": 2,
+     "cells": [
+      {"row": 0, "col": 0, "row_span": 1, "col_span": 1, "text": "行0"},
+      {"row": 0, "col": 1, "row_span": 1, "col_span": 1, "text": "0"},
+      {"row": 1, "col": 0, "row_span": 1, "col_span": 1, "text": "行1"},
+      {"row": 1, "col": 1, "row_span": 1, "col_span": 1, "text": "10"},
+      {"row": 2, "col": 0, "row_span": 1, "col_span": 1, "text": "行2"},
+      {"row": 2, "col": 1, "row_span": 1, "col_span": 1, "text": "20"},
+      {"row": 3, "col": 0, "row_span": 1, "col_span": 1, "text": "行3"},
+      {"row": 3, "col": 1, "row_span": 1, "col_span": 1, "text": "30"},
+      {"row": 4, "col": 0, "row_span": 1, "col_span": 1, "text": "行4"},
+      {"row": 4, "col": 1, "row_span": 1, "col_span": 1, "text": "40"},
+      {"row": 5, "col": 0, "row_span": 1, "col_span": 1, "text": "行5"},
+      {"row": 5, "col": 1, "row_span": 1, "col_span": 1, "text": "50"},
+      {"row": 6, "col": 0, "row_span": 1, "col_span": 1, "text": "行6"},
+      {"row": 6, "col": 1, "row_span": 1, "col_span": 1, "text": "60"},
+      {"row": 7, "col": 0, "row_span": 1, "col_span": 1, "text": "行7"},
+      {"row": 7, "col": 1, "row_span": 1, "col_span": 1, "text": "70"},
+      {"row": 8, "col": 0, "row_span": 1, "col_span": 1, "text": "行8"},
+      {"row": 8, "col": 1, "row_span": 1, "col_span": 1, "text": "80"},
+      {"row": 9, "col": 0, "row_span": 1, "col_span": 1, "text": "行9"},
+      {"row": 9, "col": 1, "row_span": 1, "col_span": 1, "text": "90"},
+      {"row": 10, "col": 0, "row_span": 1, "col_span": 1, "text": "行10"},
+      {"row": 10, "col": 1, "row_span": 2, "col_span": 1, "text": "100"},
+      {"row": 11, "col": 0, "row_span": 1, "col_span": 1, "text": "行11"},
+      {"row": 12, "col": 0, "row_span": 1, "col_span": 1, "text": "行12"},
+      {"row": 12, "col": 1, "row_span": 1, "col_span": 1, "text": "120"},
+      {"row": 13, "col": 0, "row_span": 1, "col_span": 1, "text": "行13"},
+      {"row": 13, "col": 1, "row_span": 1, "col_span": 1, "text": "130"},
+      {"row": 14, "col": 0, "row_span": 1, "col_span": 1, "text": "行14"},
+      {"row": 14, "col": 1, "row_span": 1, "col_span": 1, "text": "140"},
+      {"row": 15, "col": 0, "row_span": 1, "col_span": 1, "text": "行15"},
+      {"row": 15, "col": 1, "row_span": 1, "col_span": 1, "text": "150"},
+      {"row": 16, "col": 0, "row_span": 1, "col_span": 1, "text": "行16"},
+      {"row": 16, "col": 1, "row_span": 1, "col_span": 1, "text": "160"},
+      {"row": 17, "col": 0, "row_span": 1, "col_span": 1, "text": "行17"},
+      {"row": 17, "col": 1, "row_span": 1, "col_span": 1, "text": "170"},
+      {"row": 18, "col": 0, "row_span": 1, "col_span": 1, "text": "行18"},
+      {"row": 18, "col": 1, "row_span": 1, "col_span": 1, "text": "180"},
+      {"row": 19, "col": 0, "row_span": 1, "col_span": 1, "text": "行19"},
+      {"row": 19, "col": 1, "row_span": 1, "col_span": 1, "text": "190"},
+      {"row": 20, "col": 0, "row_span": 1, "col_span": 1, "text": "行20"},
+      {"row": 20, "col": 1, "row_span": 1, "col_span": 1, "text": "200"},
+      {"row": 21, "col": 0, "row_span": 1, "col_span": 1, "text": "行21"},
+      {"row": 21, "col": 1, "row_span": 1, "col_span": 1, "text": "210"},
+      {"row": 22, "col": 0, "row_span": 1, "col_span": 1, "text": "行22"},
+      {"row": 22, "col": 1, "row_span": 1, "col_span": 1, "text": "220"},
+      {"row": 23, "col": 0, "row_span": 1, "col_span": 1, "text": "行23"},
+      {"row": 23, "col": 1, "row_span": 1, "col_span": 1, "text": "230"},
+      {"row": 24, "col": 0, "row_span": 1, "col_span": 1, "text": "行24"},
+      {"row": 24, "col": 1, "row_span": 1, "col_span": 1, "text": "240"}
+     ],
+     "source": ["p004_1#3"]
+    }
+   ]
+  }
+ ]
+}

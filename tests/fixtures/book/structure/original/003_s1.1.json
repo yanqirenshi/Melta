@@ -1,0 +1,27 @@
+{
+ "version": 2,
+ "file": "003_s1.1.json",
+ "id": "s1.1",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "1 はじめに"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.1",
+   "level": 2,
+   "title": "1.1 ひとつの文",
+   "source": ["p002_1#7"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p3",
+     "source": ["p002_1#8"],
+     "sentences": [
+      {"id": "p3.1", "text": "この段落には文が一つしかありません。"}
+     ]
+    }
+   ]
+  }
+ ]
+}

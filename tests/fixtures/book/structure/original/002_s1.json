@@ -1,0 +1,64 @@
+{
+ "version": 2,
+ "file": "002_s1.json",
+ "id": "s1",
+ "ancestors": [],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1",
+   "level": 1,
+   "title": "1 はじめに",
+   "source": ["p002_1#0"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p2",
+     "source": ["p002_1#1", "p002_1#2"],
+     "sentences": [
+      {"id": "p2.1", "text": "最初の文です。"},
+      {"id": "p2.2", "text": "二番目の文は曰本語です。"},
+      {"id": "p2.3", "text": "三番目の文です。"}
+     ]
+    },
+    {
+     "type": "list",
+     "id": "l1",
+     "source": ["p002_1#3", "p002_1#4"],
+     "items": [
+      {
+       "id": "l1.1",
+       "source": ["p002_1#3"],
+       "sentences": [
+        {"id": "l1.1.1", "text": "一つ目の項目です。"},
+        {"id": "l1.1.2", "text": "項目の二文目です。"}
+       ]
+      },
+      {
+       "id": "l1.2",
+       "source": ["p002_1#4"],
+       "sentences": [
+        {"id": "l1.2.1", "text": "二つ目の項目です。"}
+       ]
+      }
+     ]
+    },
+    {
+     "type": "figure",
+     "id": "f1",
+     "src": "figures/p002_1_0.png",
+     "text": ["図の中の文宇", "矢印"],
+     "source": ["p002_1#5"]
+    },
+    {
+     "type": "caption",
+     "id": "c1",
+     "text": "図1 テストの図",
+     "source": ["p002_1#6"]
+    },
+    {"type": "section_ref", "id": "s1.1", "level": 2, "title": "1.1 ひとつの文", "file": "003_s1.1.json"},
+    {"type": "section_ref", "id": "s1.2", "level": 2, "title": "1.2 表のある節", "file": "004_s1.2.json"}
+   ]
+  }
+ ]
+}

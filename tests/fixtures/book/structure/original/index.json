@@ -1,0 +1,40 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "0000000000000000000000000000000000000000000000000000000000000001"},
+ "split_chars": 1500,
+ "pages": [
+  {"id": "p001_1", "status": "ok", "decorations": []},
+  {"id": "p002_1", "status": "ok", "decorations": [{"type": "header", "text": "テストの本"}, {"type": "index", "text": "2"}]},
+  {"id": "p003_1", "status": "ok", "decorations": [{"type": "index", "text": "3"}]},
+  {"id": "p004_1", "status": "ok", "decorations": [{"type": "index", "text": "4"}]}
+ ],
+ "files": [
+  {"file": "001_front.json", "id": null, "chars": 24, "json_chars": 275},
+  {"file": "002_s1.json", "id": "s1", "chars": 66, "json_chars": 1382},
+  {"file": "003_s1.1.json", "id": "s1.1", "chars": 26, "json_chars": 438},
+  {"file": "004_s1.2.json", "id": "s1.2", "chars": 67, "json_chars": 1454},
+  {"file": "005_s2.json", "id": "s2", "chars": 33, "json_chars": 4248}
+ ],
+ "toc": [
+  {
+   "id": "s1",
+   "level": 1,
+   "title": "1 はじめに",
+   "file": "002_s1.json",
+   "children": [
+    {"id": "s1.1", "level": 2, "title": "1.1 ひとつの文", "file": "003_s1.1.json", "children": []},
+    {
+     "id": "s1.2",
+     "level": 2,
+     "title": "1.2 表のある節",
+     "file": "004_s1.2.json",
+     "children": [
+      {"id": "s1.2.1", "level": 3, "title": "1.2.1 入れ子の見出し", "file": "004_s1.2.json", "children": []}
+     ]
+    }
+   ]
+  },
+  {"id": "s2", "level": 1, "title": "2 大きな表", "file": "005_s2.json", "children": []}
+ ]
+}
