@@ -12,8 +12,9 @@
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 use serde_json::Value;
 use tempfile::TempDir;
@@ -30,7 +31,7 @@ pub const PART_FILES: [&str; 5] = [
 ];
 
 /// テスト用の原本のすべてのセンテンスの ID と本文。
-pub const SENTENCES: [(&str, &str); 15] = [
+pub const SENTENCES: [(&str, &str); 17] = [
     ("p1.1", "これはテスト用の本です。"),
     ("p1.2", "見出しより前の本文です。"),
     ("p2.1", "最初の文です。"),
@@ -46,7 +47,18 @@ pub const SENTENCES: [(&str, &str); 15] = [
     ("p5.2", "二つ目の文です。"),
     ("p6.1", "大きな表の前の段落です。"),
     ("p6.2", "行は二十五あります。"),
+    ("p7.1", P7_1),
+    ("p7.2", P7_2),
 ];
+
+// 引用符、バックスラッシュ、改行、タブ、末尾の空白・改行、4 バイトの文字を含む要素（005_s2.json の末尾）
+pub const P7_1: &str = "彼は \"引用\" と言い、\\ と C:\\dir\\file を書いた。";
+pub const P7_2: &str = "タブ\tの後に😀と𠮷、末尾に空白と改行。 \n";
+pub const C4: &str = "表3 \"記号\" \\ と\tタブ\n二行目 ";
+pub const T3_0_0: &str = "\"A\" \\ B";
+pub const T3_0_1: &str = "行1\n行2\t末尾 😀\n";
+pub const F3_0: &str = "\"図\" \\";
+pub const F3_1: &str = "😀\n二行目\n";
 
 // ------------------------------------------------------------ 作業場所
 
@@ -92,7 +104,33 @@ impl Book {
         for a in rest {
             c.arg(a);
         }
+        c.stdin(Stdio::null());
         Run::from(c.output().expect("melta を起動できない"))
+    }
+
+    /// `melta <cmd> <出力フォルダ> <rest...>` を、標準入力に `input` を渡して実行する。
+    pub fn run_stdin<I, S>(&self, cmd: &str, rest: I, input: &[u8]) -> Run
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        let mut c = Command::new(melta_bin());
+        c.arg(cmd).arg(&self.out);
+        for a in rest {
+            c.arg(a);
+        }
+        c.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+        let mut child = c.spawn().expect("melta を起動できない");
+        {
+            let mut stdin = child.stdin.take().unwrap();
+            stdin.write_all(input).expect("標準入力に書けない");
+        } // ここで標準入力を閉じる
+        Run::from(child.wait_with_output().expect("melta の終了を待てない"))
+    }
+
+    /// 版の外（一時フォルダの中）に置く作業用のファイルの場所。
+    pub fn scratch(&self, name: &str) -> PathBuf {
+        self.out.parent().unwrap().join(name)
     }
 
     /// `melta new <出力フォルダ> --from <from> --editor <editor>` が成功することを確かめ、版の名前を返す。
@@ -237,6 +275,8 @@ impl Book {
 pub struct Run {
     pub code: Option<i32>,
     pub stdout: String,
+    /// 標準出力のバイト列（そのまま）。
+    pub stdout_bytes: Vec<u8>,
     pub stderr: String,
 }
 
@@ -245,6 +285,7 @@ impl Run {
         Run {
             code: o.status.code(),
             stdout: String::from_utf8_lossy(&o.stdout).to_string(),
+            stdout_bytes: o.stdout,
             stderr: String::from_utf8_lossy(&o.stderr).to_string(),
         }
     }

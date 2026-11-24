@@ -40,9 +40,29 @@ JSON のファイルを、エディタやシェルで直接書き換えてはい
 | `melta toc <出力フォルダ> <版>` | 目次（`# toc`）とファイルの一覧（`# files`）。目次は `ID<タブ>見出し<タブ>ファイル`、ファイルは `ファイル<タブ>ID<タブ>chars<タブ>json_chars` |
 | `melta show <出力フォルダ> <版> <ID>` | ID の要素を JSON で出す |
 | `melta show <出力フォルダ> <版> <表のID> --rows 0-19` | 表の行を絞る（セルの `row` の値、両端を含む） |
+| `melta show <出力フォルダ> <版> <表のID> --cell <row>,<col>` | セルのオブジェクトを 1 つだけ JSON で出す |
+| `melta show <出力フォルダ> <版> <図のID> --index <n>` | 図の中の文字の n 番目（0 から）を、JSON の文字列で出す |
+| `melta show <出力フォルダ> <版> <ID> [--cell … | --index …] --text` | JSON にせず、文字そのものを出す（エスケープ・引用符・末尾の改行なし） |
 | `melta show <出力フォルダ> <版> --file <ファイル名>` | 1 ファイルをそのまま出す |
 | `melta outline <出力フォルダ> <版> --file <ファイル名>` | ファイルの中の要素の一覧。読むだけ（`original` にも使える） |
 | `melta outline <出力フォルダ> <版> <ID>` | その要素の下の要素の一覧 |
+
+# 文字をそのまま出す・ファイルで渡す
+
+`show` の JSON では、文の中の `"` が `\"` で出ます。
+その文字を `set-text --text` に渡すと、文を壊します。
+文字を取り出して直すときは、`--text` と `--text-file` を使います。
+
+```
+melta show <出力フォルダ> <版> p12.3 --text > a.txt
+melta set-text <出力フォルダ> <版> p12.3 --text-file a.txt
+```
+
+1. この 2 行を実行しても、版は変わりません（`origin` も付きません）。
+2. `show --text` が出すのは、センテンス・キャプションの `text`、表のセル（`--cell`）の `text`、図の文字（`--index`）、パラグラフと item の本文（センテンスを連結したもの）です。
+3. `section`、`list`、`--cell` の無い表、`--index` の無い図には使えません（エラー）。
+4. `--cell` と `--rows`、`--cell` と `--index`、`--file` と他の指定は、一緒に使えません。
+5. シェルの `197609…)` は末尾の改行を落とすので、`--text "197609…)"` は使わず、`--text-file` を使います。
 
 # 大きなファイルの読み方
 
@@ -81,6 +101,7 @@ melta new <出力フォルダ> --from <元の版> --editor <編集者名>
 | `melta set-text <出力フォルダ> <版> <ID> --text <文> [--note <理由>]` | センテンス（パラグラフと item の両方）とキャプションの文を直す |
 | `melta set-text … <表のID> --cell <row>,<col> --text <文>` | 表のセルを直す |
 | `melta set-text … <図のID> --index <n> --text <文>` | 図の中の文字を直す（`n` は 0 から。必須） |
+| `melta set-text … --text-file <パス>` | `--text` の代わりに、新しい文字をファイルから読む。中身を 1 バイトも変えずに使う（UTF-8 でなければエラー）。`-` なら標準入力。`--text` と `--text-file` は、どちらか 1 つが必須 |
 | `melta insert <出力フォルダ> <版> --after <センテンスID> --text <文> [--note <理由>]` | センテンスを、指定した文の後ろに足す。新しい ID を出す |
 | `melta insert <出力フォルダ> <版> --first-in <パラグラフやitemのID> --text <文>` | センテンスを、入れ物の先頭に足す |
 | `melta split <出力フォルダ> <版> <センテンスID> --text <文1> --text <文2> … [--note <理由>]` | センテンスを分ける。1 つ目が元の ID を引き継ぎ、2 つ目以降に新しい ID が付く。ID を順に出す |
