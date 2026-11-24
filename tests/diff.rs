@@ -151,6 +151,112 @@ fn diff_split_and_insert_together() {
     }
 }
 
+// ------------------------------------------------------------ 図の差分（index ごと）
+
+/// 見出しの行（# で始まる行）のうち、`needle` を含むもの。
+fn headings_with<'a>(out: &'a str, needle: &str) -> Vec<&'a str> {
+    out.lines().filter(|l| l.trim_start().starts_with('#') && l.contains(needle)).collect()
+}
+
+#[test]
+fn diff_figure_per_index() {
+    // 変わった index ごとに 1 項目（見出しは f2[3] の形）。直す前、直した後、その index の理由が並ぶ
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "項番の「.」を補った"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "「カ」を「力」に修正"]).ok();
+    let out = diff(&b, ORIGINAL, &e);
+
+    assert_eq!(headings_with(&out, "f2[0]").len(), 1, "f2[0] の項目が 1 つでない:\n{out}");
+    assert_eq!(headings_with(&out, "f2[3]").len(), 1, "f2[3] の項目が 1 つでない:\n{out}");
+    for i in [1, 2, 4, 5] {
+        assert!(headings_with(&out, &format!("f2[{i}]")).is_empty(), "変わっていない f2[{i}] が diff に出ている:\n{out}");
+    }
+    // 配列の全体を 1 項目で出してはいない
+    assert!(
+        headings_with(&out, "f2").iter().all(|l| l.contains("f2[")),
+        "配列の長さが同じなのに、f2 の全体の項目が出ている:\n{out}"
+    );
+
+    let b3 = item_block(&out, "f2[3]");
+    assert!(b3.contains("出カ") && b3.contains("出力"), "f2[3] の項目に、直す前と直した後が無い:\n{b3}");
+    assert!(b3.contains("「カ」を「力」に修正"), "f2[3] の項目に、その index の理由が無い:\n{b3}");
+    assert!(!b3.contains("項番の「.」を補った"), "f2[3] の項目に、ほかの index の理由が出ている:\n{b3}");
+    // 変わっていない index の文字は出ない
+    for other in ["入力", "保存"] {
+        assert!(!b3.contains(other), "f2[3] の項目に、変わっていない文字 {other} が出ている:\n{b3}");
+    }
+
+    let b0 = item_block(&out, "f2[0]");
+    assert!(b0.contains("1."), "f2[0] の項目に、直した後の文字が無い:\n{b0}");
+    assert!(b0.contains("項番の「.」を補った"), "f2[0] の項目に、その index の理由が無い:\n{b0}");
+    assert!(!b0.contains("「カ」を「力」に修正"), "f2[0] の項目に、ほかの index の理由が出ている:\n{b0}");
+}
+
+#[test]
+fn diff_figure_index_without_note() {
+    // 理由の無い index の項目には、ほかの index の理由が出ない
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "項番の「.」を補った"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "2", "--text", "2."]).ok();
+    let out = diff(&b, ORIGINAL, &e);
+    let b2 = item_block(&out, "f2[2]");
+    assert!(b2.contains("2."), "f2[2] の項目に、直した後の文字が無い:\n{b2}");
+    assert!(!b2.contains("項番の「.」を補った"), "理由の無い f2[2] の項目に、f2[0] の理由が出ている:\n{b2}");
+}
+
+#[test]
+fn diff_figure_count_is_per_index() {
+    // 件数も index ごとに数える。図 1 つの 2 か所だけを直した diff と、
+    // 2 つのセンテンスだけを直した diff で、件数の数字の部分が同じになることで確かめる（文言は比べない）
+    let digits = |s: &str| -> String { s.chars().filter(|c| c.is_ascii_digit()).collect() };
+    let summary = |out: &str| -> String {
+        // 項目の見出し（### の行）より前の部分の数字（件数）だけを取り出す
+        let head: Vec<&str> = out.lines().take_while(|l| !l.trim_start().starts_with("###")).collect();
+        digits(&head.join("\n").replace(ORIGINAL, ""))
+    };
+
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1."]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力"]).ok();
+    let fig = diff(&b, ORIGINAL, &e);
+
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "p2.2", "--text", "a。"]).ok();
+    b.run("set-text", [e.as_str(), "p4.1", "--text", "b。"]).ok();
+    let sent = diff(&b, ORIGINAL, &e);
+
+    assert_eq!(summary(&fig), summary(&sent), "図の 2 か所の件数が、2 件として数えられていない\n--- 図\n{fig}\n--- センテンス\n{sent}");
+}
+
+#[test]
+fn diff_figure_length_changed_shows_whole_array() {
+    // 2 つの版で配列の長さが違うときは、配列の全体が 1 項目で出る（版の JSON を直接書き換えて作る）
+    let (b, e) = setup();
+    let mut v = b.part(&e, "005_s2.json");
+    let f = &mut v["body"][0]["children"][3];
+    assert_eq!(f["id"], "f2");
+    f["text"] = serde_json::json!(["1.", "入力", "2.", "出力", "3.", "保存", "4.", "削除"]);
+    b.write_part(&e, "005_s2.json", &v);
+
+    let out = diff(&b, ORIGINAL, &e);
+    let hs = headings_with(&out, "f2");
+    assert_eq!(hs.len(), 1, "長さの違う図の項目が 1 つでない:\n{out}");
+    assert!(!hs[0].contains("f2["), "長さの違う図が、index ごとに出ている:\n{out}");
+    let block = item_block(&out, "f2");
+    for t in ["出カ", "出力", "削除"] {
+        assert!(block.contains(t), "f2 の項目に {t} が無い（配列の全体が出ていない）:\n{block}");
+    }
+}
+
+#[test]
+fn diff_figure_back_to_base_shows_nothing() {
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "n"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出カ"]).ok();
+    let out = diff(&b, ORIGINAL, &e);
+    assert!(headings_with(&out, "f2").is_empty(), "base に戻した図が diff に出ている:\n{out}");
+}
+
 #[test]
 fn diff_reversed_direction() {
     // 版 A と版 B を入れ替えても動き、足した・消したが入れ替わる（出る ID は同じ）

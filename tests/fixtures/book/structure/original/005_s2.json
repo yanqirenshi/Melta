@@ -83,6 +83,13 @@
       {"row": 24, "col": 1, "row_span": 1, "col_span": 1, "text": "240"}
      ],
      "source": ["p004_1#3"]
+    },
+    {
+     "type": "figure",
+     "id": "f2",
+     "src": "figures/p004_1_0.png",
+     "text": ["1", "入力", "2", "出カ", "3.", "保存"],
+     "source": ["p004_1#4"]
     }
    ]
   }

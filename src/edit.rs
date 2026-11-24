@@ -34,6 +34,7 @@ fn strip_origin(v: &mut Value) -> bool {
             if m.contains_key("origin") {
                 m.remove("origin");
                 m.remove("note");
+                m.remove("notes");
                 changed = true;
             }
             for x in m.values_mut() {
@@ -214,7 +215,7 @@ pub fn set_text(out: &Path, edition: &str, id: &str, text: &str, note: Option<&s
             }
             let mut new_arr = arr;
             new_arr[i] = Value::from(text);
-            apply_text(node, id, &base, Value::Array(new_arr), note)
+            apply_figure(node, id, &base, i, new_arr, note)
         }
         Some("table") => {
             let (r, c) = parse_cell(cell.ok_or("表のセルを直すには --cell <row>,<col> が要ります")?)?;
@@ -357,4 +358,43 @@ pub fn delete(out: &Path, edition: &str, id: &str, note: Option<&str>) -> Res<St
     ed.index_dirty = true;
     ed.save()?;
     Ok(id.to_string())
+}
+
+/// 図の中の文字（`text` の配列）の i 番目を直した結果 `new_arr` を書く。
+/// 理由は、直した index ごとに `notes`（キーは index の文字列）に持つ。
+fn apply_figure(node: &mut Value, id: &str, base: &str, i: usize, new_arr: Vec<Value>, note: Option<&str>) -> bool {
+    let obj = node.as_object_mut().unwrap();
+    let current = obj.get("text").cloned().unwrap_or(Value::Null);
+    let new_val = Value::Array(new_arr.clone());
+    let orig_text = obj.get("origin").and_then(|o| o.get("text")).cloned();
+    let base_text = orig_text.clone().unwrap_or_else(|| current.clone());
+    if orig_text.is_none() && current == new_val {
+        return false;
+    }
+    if base_text == new_val {
+        obj.insert("text".to_string(), new_val);
+        obj.remove("origin");
+        obj.remove("notes");
+        return true;
+    }
+    if !obj.contains_key("origin") {
+        obj.insert("origin".to_string(), json!({"edition": base, "ids": [id], "text": current}));
+    }
+    obj.insert("text".to_string(), new_val);
+    let key = i.to_string();
+    let same = base_text.as_array().and_then(|a| a.get(i)) == Some(&new_arr[i]);
+    if same {
+        if let Some(n) = obj.get_mut("notes").and_then(|n| n.as_object_mut()) {
+            n.remove(&key);
+        }
+    } else if let Some(n) = note {
+        let notes = obj.entry("notes").or_insert_with(|| json!({}));
+        if let Some(m) = notes.as_object_mut() {
+            m.insert(key, Value::from(n));
+        }
+    }
+    if obj.get("notes").and_then(|n| n.as_object()).map_or(false, |n| n.is_empty()) {
+        obj.remove("notes");
+    }
+    true
 }

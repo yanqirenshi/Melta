@@ -2,7 +2,7 @@
 
 use crate::edition::*;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 struct Item {
@@ -13,7 +13,23 @@ struct Item {
     origin_ids: Vec<String>,
 }
 
-fn collect(ed: &Edition) -> Vec<Item> {
+fn fig_lens(ed: &Edition) -> HashMap<String, usize> {
+    let mut m = HashMap::new();
+    for p in &ed.parts {
+        if let Some(body) = p.value.get("body") {
+            walk_objects(body, &mut |o| {
+                if str_of(o, "type") == Some("figure") {
+                    if let Some(id) = str_of(o, "id") {
+                        m.insert(id.to_string(), o.get("text").and_then(|t| t.as_array()).map_or(0, |a| a.len()));
+                    }
+                }
+            });
+        }
+    }
+    m
+}
+
+fn collect(ed: &Edition, whole: &HashSet<String>) -> Vec<Item> {
     fn push(items: &mut Vec<Item>, key: String, kind: &'static str, o: &Value, text: Value) {
         let origin_ids = o
             .get("origin")
@@ -30,13 +46,13 @@ fn collect(ed: &Edition) -> Vec<Item> {
             }
         }
     }
-    fn node(items: &mut Vec<Item>, n: &Value) {
+    fn node(items: &mut Vec<Item>, n: &Value, whole: &HashSet<String>) {
         let id = str_of(n, "id").unwrap_or("?").to_string();
         match str_of(n, "type") {
             Some("section") => {
                 push(items, id, "見出し", n, n.get("title").cloned().unwrap_or(Value::Null));
                 for c in n.get("children").and_then(|c| c.as_array()).into_iter().flatten() {
-                    node(items, c);
+                    node(items, c, whole);
                 }
             }
             Some("paragraph") => sentences(items, n),
@@ -46,7 +62,17 @@ fn collect(ed: &Edition) -> Vec<Item> {
                 }
             }
             Some("caption") => push(items, id, "キャプション", n, n.get("text").cloned().unwrap_or(Value::Null)),
-            Some("figure") => push(items, id, "図の文字", n, n.get("text").cloned().unwrap_or(Value::Null)),
+            Some("figure") => {
+                let arr = n.get("text").and_then(|t| t.as_array()).cloned().unwrap_or_default();
+                if whole.contains(&id) {
+                    push(items, id, "図の文字", n, Value::Array(arr));
+                } else {
+                    for (i, t) in arr.into_iter().enumerate() {
+                        let note = n.get("notes").and_then(|m| str_of(m, &i.to_string())).map(|s| s.to_string());
+                        items.push(Item { key: format!("{id}[{i}]"), kind: "図の文字", text: t, note, origin_ids: vec![] });
+                    }
+                }
+            }
             Some("table") => {
                 for c in n.get("cells").and_then(|c| c.as_array()).into_iter().flatten() {
                     let r = c.get("row").and_then(|x| x.as_i64()).unwrap_or(-1);
@@ -60,7 +86,7 @@ fn collect(ed: &Edition) -> Vec<Item> {
     let mut items = Vec::new();
     for p in &ed.parts {
         for n in p.value.get("body").and_then(|b| b.as_array()).into_iter().flatten() {
-            node(&mut items, n);
+            node(&mut items, n, whole);
         }
     }
     items
@@ -82,8 +108,10 @@ fn heading(out: &mut String, item: &Item) {
 pub fn run(out: &Path, a: &str, b: &str) -> Res<String> {
     let ea = Edition::load(out, a)?;
     let eb = Edition::load(out, b)?;
-    let ia = collect(&ea);
-    let ib = collect(&eb);
+    let (la, lb) = (fig_lens(&ea), fig_lens(&eb));
+    let whole: HashSet<String> = la.iter().filter(|(k, v)| lb.get(*k).map_or(false, |w| w != *v)).map(|(k, _)| k.clone()).collect();
+    let ia = collect(&ea, &whole);
+    let ib = collect(&eb, &whole);
     let ma: HashMap<&str, &Item> = ia.iter().map(|i| (i.key.as_str(), i)).collect();
     let mb: HashMap<&str, &Item> = ib.iter().map(|i| (i.key.as_str(), i)).collect();
 
