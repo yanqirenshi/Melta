@@ -126,16 +126,35 @@ fn new_drops_origin_and_note_carried_from_base() {
     let a = b.new_edition(ORIGINAL, "a");
     b.run("set-text", [a.as_str(), "p2.2", "--text", "二番目の文は日本語です。", "--note", "曰→日"]).ok();
     b.run("insert", [a.as_str(), "--after", "p2.3", "--text", "足した文です。"]).ok();
+    b.run("set-text", [a.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "n0"]).ok();
+    b.run("set-text", [a.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "n3"]).ok();
+    b.run("set-text", [a.as_str(), "t1", "--cell", "1,0", "--text", "みかん", "--note", "nc"]).ok();
     assert!(b.get(&a, "p2.2").get("origin").is_some());
+    assert!(b.get(&a, "f2").get("notes").is_some());
 
     let bb = b.new_edition(&a, "b");
     for (id, el) in b.all_elements(&bb) {
         assert!(el.get("origin").is_none(), "{bb} の {id} に、元の版の origin が残っている");
         assert!(el.get("note").is_none(), "{bb} の {id} に、元の版の note が残っている");
+        assert!(el.get("notes").is_none(), "{bb} の {id} に、元の版の notes が残っている");
+        for c in el.get("cells").and_then(Value::as_array).into_iter().flatten() {
+            assert!(c.get("origin").is_none() && c.get("note").is_none(), "{bb} の {id} のセルに、元の版の origin・note が残っている: {c}");
+        }
     }
     // 中身は引き継ぐ
     assert_eq!(b.text(&bb, "p2.2"), "二番目の文は日本語です。");
     assert_eq!(b.text(&bb, "p2.4"), "足した文です。");
+    assert_eq!(b.get(&bb, "f2")["text"], serde_json::json!(["1.", "入力", "2", "出力", "3.", "保存"]));
+    b.check_ok(&bb);
+
+    // 持ち越した notes が消えた版で、同じ図を直すと、origin は 1 つ前の版（01_a）の配列になる
+    b.run("set-text", [bb.as_str(), "f2", "--index", "4", "--text", "3。", "--note", "n4"]).ok();
+    let f = b.get(&bb, "f2");
+    assert_eq!(f["notes"], serde_json::json!({"4": "n4"}));
+    assert_eq!(
+        f["origin"],
+        serde_json::json!({"edition": "01_a", "ids": ["f2"], "text": ["1.", "入力", "2", "出力", "3.", "保存"]})
+    );
 }
 
 #[test]

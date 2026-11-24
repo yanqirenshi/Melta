@@ -113,7 +113,8 @@ fn set_text_caption() {
 #[test]
 fn set_text_figure_text() {
     // --index n で、図の text の配列の n 番目（0 始まり）を直す。
-    // origin と note は図の要素に付き、origin.text は直す前の配列の全体
+    // origin は図の要素に 1 つで、origin.text は直す前の配列の全体。
+    // 理由は note ではなく notes（キーが index の文字列、値が理由）に入る
     let (b, e) = setup();
     b.run("set-text", [e.as_str(), "f1", "--index", "0", "--text", "図の中の文字", "--note", "「宇」を「字」に修正"]).ok();
     let f = b.get(&e, "f1");
@@ -123,33 +124,123 @@ fn set_text_figure_text() {
         f["origin"],
         json!({"edition": "original", "ids": ["f1"], "text": ["図の中の文宇", "矢印"]})
     );
-    assert_eq!(f["note"], "「宇」を「字」に修正");
+    assert_eq!(f["notes"], json!({"0": "「宇」を「字」に修正"}));
+    assert_no_note(&f);
     assert_others_unchanged(&b, ORIGINAL, &e, &["f1"]);
     b.check_ok(&e);
 
-    // 2 つ目を直しても、origin は最初のまま（base の配列の全体）
+    // 2 つ目を --note 無しで直しても、origin は最初のまま（base の配列の全体）。
+    // --note を付けずに直した index は、notes にキーを作らない
     b.run("set-text", [e.as_str(), "f1", "--index", "1", "--text", "矢じるし"]).ok();
     let f = b.get(&e, "f1");
     assert_eq!(f["text"], json!(["図の中の文字", "矢じるし"]));
     assert_eq!(f["origin"]["text"], json!(["図の中の文宇", "矢印"]));
-    assert_eq!(f["note"], "「宇」を「字」に修正", "--note を付けなければ前の note が残る");
+    assert_eq!(f["notes"], json!({"0": "「宇」を「字」に修正"}));
+    assert_no_note(&f);
     b.check_ok(&e);
 }
 
+/// 図には note を付けない（理由は notes に入る）。
+fn assert_no_note(f: &Value) {
+    assert!(f.get("note").is_none(), "図に note が付いている（notes に入るはず）: {f}");
+}
+
 #[test]
-fn set_text_figure_back_to_base_removes_origin_and_note() {
+fn set_text_figure_back_to_base_removes_origin_and_notes() {
     let (b, e) = setup();
     b.run("set-text", [e.as_str(), "f1", "--index", "0", "--text", "図の中の文字", "--note", "n"]).ok();
-    b.run("set-text", [e.as_str(), "f1", "--index", "1", "--text", "矢じるし"]).ok();
-    // 1 つだけ戻しても、配列が base と違うので origin は残る
+    b.run("set-text", [e.as_str(), "f1", "--index", "1", "--text", "矢じるし", "--note", "m"]).ok();
+    // index 0 だけ戻すと、index 0 の理由だけが消え、配列が base と違うので origin は残る
     b.run("set-text", [e.as_str(), "f1", "--index", "0", "--text", "図の中の文宇"]).ok();
-    assert!(b.get(&e, "f1").get("origin").is_some(), "配列がまだ base と違うのに origin が消えた");
-    // 配列の全体が base と同じに戻ったら、origin と note は消える
+    let f = b.get(&e, "f1");
+    assert!(f.get("origin").is_some(), "配列がまだ base と違うのに origin が消えた");
+    assert_eq!(f["notes"], json!({"1": "m"}));
+    // 配列の全体が base と同じに戻ったら、origin と notes は消える
     b.run("set-text", [e.as_str(), "f1", "--index", "1", "--text", "矢印"]).ok();
     let f = b.get(&e, "f1");
     assert_eq!(f["text"], json!(["図の中の文宇", "矢印"]));
     assert!(f.get("origin").is_none(), "base の配列に戻ったのに origin が残っている: {f}");
-    assert!(f.get("note").is_none(), "base の配列に戻ったのに note が残っている: {f}");
+    assert!(f.get("notes").is_none(), "base の配列に戻ったのに notes が残っている: {f}");
+    assert_no_note(&f);
+    b.check_ok(&e);
+}
+
+#[test]
+fn figure_notes_keep_reasons_for_each_index() {
+    // 今回の改善のきっかけ: 同じ図の 2 つの index を別々の理由で直したら、両方の理由が残る
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "項番の「.」を補った"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "「カ」を「力」に修正"]).ok();
+    let f = b.get(&e, "f2");
+    assert_eq!(f["text"], json!(["1.", "入力", "2", "出力", "3.", "保存"]));
+    assert_eq!(f["notes"], json!({"0": "項番の「.」を補った", "3": "「カ」を「力」に修正"}));
+    assert_eq!(
+        f["origin"],
+        json!({"edition": "original", "ids": ["f2"], "text": ["1", "入力", "2", "出カ", "3.", "保存"]})
+    );
+    assert_no_note(&f);
+    b.check_ok(&e);
+
+    // 3 つ目の index を直しても、前の 2 つの理由は残る
+    b.run("set-text", [e.as_str(), "f2", "--index", "2", "--text", "2.", "--note", "項番の「.」を補った（2）"]).ok();
+    assert_eq!(
+        b.get(&e, "f2")["notes"],
+        json!({"0": "項番の「.」を補った", "2": "項番の「.」を補った（2）", "3": "「カ」を「力」に修正"})
+    );
+    b.check_ok(&e);
+}
+
+#[test]
+fn figure_notes_overwrite_and_keep() {
+    // 同じ index を --note 付きで直し直したら上書き、--note 無しなら前の理由が残る
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出刀", "--note", "n1"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "n2"]).ok();
+    assert_eq!(b.get(&e, "f2")["notes"], json!({"3": "n2"}));
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力。"]).ok();
+    let f = b.get(&e, "f2");
+    assert_eq!(f["text"][3], "出力。");
+    assert_eq!(f["notes"], json!({"3": "n2"}), "--note 無しで直し直したら、前の理由が残る");
+    assert_eq!(f["origin"]["text"][3], "出カ", "origin は最初のまま");
+    b.check_ok(&e);
+}
+
+#[test]
+fn figure_edit_without_note_has_no_notes() {
+    // --note を付けずに直した index は notes にキーを作らない。キーが無ければ notes のプロパティも無い
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "2", "--text", "2."]).ok();
+    let f = b.get(&e, "f2");
+    assert_eq!(f["text"][2], "2.");
+    assert!(f.get("origin").is_some());
+    assert!(f.get("notes").is_none(), "--note を付けていないのに notes がある（空のオブジェクトも不可）: {f}");
+    assert_no_note(&f);
+    b.check_ok(&e);
+}
+
+#[test]
+fn figure_notes_disappear_when_empty() {
+    // 理由のある index を base に戻し、notes が空になったら notes のプロパティが消える。
+    // 理由の無い index がまだ base と違うので、origin は残る
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "n0"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "2", "--text", "2."]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1"]).ok();
+    let f = b.get(&e, "f2");
+    assert_eq!(f["text"], json!(["1", "入力", "2.", "出カ", "3.", "保存"]));
+    assert!(f.get("notes").is_none(), "notes が空になったのに、notes のプロパティが残っている: {f}");
+    assert!(f.get("origin").is_some(), "配列がまだ base と違うのに origin が消えた: {f}");
+    b.check_ok(&e);
+}
+
+#[test]
+fn figure_index_back_to_base_with_note_removes_only_that_key() {
+    // base に戻すときに --note を付けても、その index のキーは消える
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "n0"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "3", "--text", "出力", "--note", "n3"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1", "--note", "戻した"]).ok();
+    assert_eq!(b.get(&e, "f2")["notes"], json!({"3": "n3"}));
     b.check_ok(&e);
 }
 

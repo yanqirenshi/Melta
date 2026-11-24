@@ -33,6 +33,15 @@ pub enum Command {
         #[arg(long)]
         file: Option<String>,
     },
+    /// 要素の一覧（入れ子の深さ・type・ID・大きさ・先頭の文字）を、読み順に出す。読むだけ
+    Outline {
+        out: PathBuf,
+        edition: String,
+        id: Option<String>,
+        /// このファイルの中の要素を出す
+        #[arg(long)]
+        file: Option<String>,
+    },
     /// 元の版を全部コピーして、新しい版を作る（作った版の名前を出す）
     New {
         out: PathBuf,
@@ -170,6 +179,32 @@ pub fn run(cli: Cli) -> Res<i32> {
                 println!("{}", dumps(&node, 0, false));
             }
         }
+        Command::Outline { out, edition, id, file } => {
+            let ed = Edition::load(&out, &edition)?;
+            match (&file, &id) {
+                (Some(_), Some(_)) => return Err("ID と --file は同時に指定できません".to_string()),
+                (None, None) => return Err("ID か --file のどちらか 1 つを指定してください".to_string()),
+                _ => {}
+            }
+            let mut lines = Vec::new();
+            if let Some(file) = file {
+                validate_file_name(&file)?;
+                let part = ed.parts.iter().find(|p| p.name == file).ok_or_else(|| format!("ファイル {file} は、index.json の files にありません"))?;
+                for n in part.value.get("body").and_then(|b| b.as_array()).into_iter().flatten() {
+                    outline_node(n, 0, &mut lines);
+                }
+            } else {
+                let id = id.unwrap();
+                let (pi, ptr) = ed.find_id(&id).ok_or_else(|| format!("ID {id} の要素が見つかりません"))?;
+                let node = ed.parts[pi].value.pointer(&ptr).unwrap();
+                for c in node.get("children").and_then(|c| c.as_array()).into_iter().flatten() {
+                    outline_node(c, 0, &mut lines);
+                }
+            }
+            for l in lines {
+                println!("{l}");
+            }
+        }
         Command::New { out, from, editor } => println!("{}", edit::new_edition(&out, &from, &editor)?),
         Command::SetText { out, edition, id, text, note, cell, index } => {
             println!("{}", edit::set_text(&out, &edition, &id, &text, note.as_deref(), cell.as_deref(), index)?)
@@ -197,4 +232,42 @@ pub fn run(cli: Cli) -> Res<i32> {
         Command::Diff { out, a, b } => print!("{}", diff::run(&out, &a, &b)?),
     }
     Ok(0)
+}
+
+fn head(s: &str) -> String {
+    s.chars().take(20).map(|c| if c == '\t' || c == '\n' || c == '\r' { ' ' } else { c }).collect()
+}
+
+fn first_sentence(n: &Value) -> String {
+    let s = n.get("sentences").and_then(|s| s.get(0)).and_then(|s| str_of(s, "text")).unwrap_or("");
+    head(s)
+}
+
+/// outline の 1 行（タブ区切り: 深さ, type, ID, 大きさ, 先頭の文字）を足す。センテンスと item は出さない。
+fn outline_node(n: &Value, depth: usize, lines: &mut Vec<String>) {
+    let ty = str_of(n, "type").unwrap_or("?");
+    let id = str_of(n, "id").unwrap_or("?");
+    let size = dumps(n, 0, false).chars().count();
+    let (size_col, text) = match ty {
+        "section" => (size.to_string(), head(str_of(n, "title").unwrap_or(""))),
+        "section_ref" => ("-".to_string(), str_of(n, "file").unwrap_or("").to_string()),
+        "paragraph" => (size.to_string(), first_sentence(n)),
+        "list" => (size.to_string(), n.get("items").and_then(|i| i.get(0)).map(first_sentence).unwrap_or_default()),
+        "caption" => (size.to_string(), head(str_of(n, "text").unwrap_or(""))),
+        "figure" => (size.to_string(), head(n.get("text").and_then(|t| t.get(0)).and_then(|t| t.as_str()).unwrap_or(""))),
+        "table" => {
+            let cells = n.get("cells").and_then(|c| c.as_array()).cloned().unwrap_or_default();
+            let mut rows: Vec<u64> = cells.iter().filter_map(|c| c.get("row").and_then(|r| r.as_u64())).collect();
+            rows.sort();
+            rows.dedup();
+            (format!("{size} ({} 行, {} セル)", rows.len(), cells.len()), head(cells.first().and_then(|c| str_of(c, "text")).unwrap_or("")))
+        }
+        _ => return,
+    };
+    lines.push(format!("{depth}\t{ty}\t{id}\t{size_col}\t{text}"));
+    if ty == "section" {
+        for c in n.get("children").and_then(|c| c.as_array()).into_iter().flatten() {
+            outline_node(c, depth + 1, lines);
+        }
+    }
 }

@@ -102,6 +102,32 @@ pub fn run(out: &Path, name: &str) -> Res<Vec<String>> {
         });
     }
 
+    // --- 図の notes（index ごとの理由）
+    for (file, part) in &parts {
+        let Some(body) = part.get("body") else { continue };
+        walk_objects(body, &mut |o| {
+            if str_of(o, "type") != Some("figure") {
+                return;
+            }
+            let Some(notes) = o.get("notes") else { return };
+            let id = str_of(o, "id").unwrap_or("?");
+            let len = o.get("text").and_then(|t| t.as_array()).map_or(0, |a| a.len());
+            match notes.as_object() {
+                None => problems.push(format!("[notes] {file} の図 {id} の notes がオブジェクトではありません")),
+                Some(m) => {
+                    for (k, v) in m {
+                        if !k.parse::<usize>().map_or(false, |i| i < len) {
+                            problems.push(format!("[notes] {file} の図 {id} の notes のキー {k:?} が、文字の範囲内の index ではありません"));
+                        }
+                        if !v.is_string() {
+                            problems.push(format!("[notes] {file} の図 {id} の notes[{k}] が文字列ではありません"));
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     // --- 3. section_ref
     for (file, part) in &parts {
         let Some(body) = part.get("body") else { continue };

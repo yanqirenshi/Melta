@@ -412,6 +412,64 @@ fn new_stops_on_malformed_base_edition() {
     assert!(missed.is_empty(), "new が、edition の壊れた元の版から版を作った:\n{}", missed.join("\n"));
 }
 
+// ------------------------------------------------------------ 図の notes
+
+/// 005_s2.json の f2（s2 の children の 4 つ目。text は 6 要素）。
+fn f2(v: &mut Value) -> &mut Value {
+    let f = &mut v["body"][0]["children"][3];
+    assert_eq!(f["id"], "f2", "テスト用の原本の f2 の位置が変わった");
+    f
+}
+
+#[test]
+fn figure_notes_well_formed_passes() {
+    let (b, e) = setup();
+    b.run("set-text", [e.as_str(), "f2", "--index", "0", "--text", "1.", "--note", "n0"]).ok();
+    b.run("set-text", [e.as_str(), "f2", "--index", "5", "--text", "保存。", "--note", "n5"]).ok();
+    b.check_ok(&e);
+    // 手で書いた正しい notes も通る（配列の最後の index まで）
+    edit_part(&b, &e, "005_s2.json", |v| f2(v)["notes"] = json!({"0": "a", "5": "b"}));
+    b.check_ok(&e);
+}
+
+#[test]
+fn detects_malformed_figure_notes() {
+    let cases: Vec<(&str, Breaker)> = vec![
+        ("notes が配列", |v| f2(v)["notes"] = json!(["a"])),
+        ("notes が文字列", |v| f2(v)["notes"] = json!("a")),
+        ("notes が null", |v| f2(v)["notes"] = Value::Null),
+        ("notes のキーが配列の範囲外（6）", |v| f2(v)["notes"] = json!({"6": "a"})),
+        ("notes のキーが大きな数", |v| f2(v)["notes"] = json!({"99": "a"})),
+        ("notes のキーが負の数", |v| f2(v)["notes"] = json!({"-1": "a"})),
+        ("notes のキーが数でない", |v| f2(v)["notes"] = json!({"a": "a"})),
+        ("notes のキーが空", |v| f2(v)["notes"] = json!({"": "a"})),
+        ("notes の値が数", |v| f2(v)["notes"] = json!({"0": 1})),
+        ("notes の値が null", |v| f2(v)["notes"] = json!({"0": null})),
+        ("notes の値がオブジェクト", |v| f2(v)["notes"] = json!({"0": {"text": "a"}})),
+    ];
+    for (why, f) in cases {
+        let (b, e) = setup();
+        edit_part(&b, &e, "005_s2.json", f);
+        b.check_fails(&e, why);
+    }
+}
+
+#[test]
+fn figure_notes_key_range_follows_text_length() {
+    // f1 の text は 2 要素なので、キー "2" は範囲外
+    let (b, e) = setup();
+    edit_part(&b, &e, "002_s1.json", |v| {
+        let f = s1_children(v).iter_mut().find(|c| c["id"] == "f1").unwrap();
+        f["notes"] = json!({"1": "a"});
+    });
+    b.check_ok(&e);
+    edit_part(&b, &e, "002_s1.json", |v| {
+        let f = s1_children(v).iter_mut().find(|c| c["id"] == "f1").unwrap();
+        f["notes"] = json!({"1": "a", "2": "b"});
+    });
+    b.check_fails(&e, "f1 の notes のキー 2 が配列の範囲外");
+}
+
 #[test]
 fn retired_id_not_present_is_fine() {
     let (b, e) = setup();
