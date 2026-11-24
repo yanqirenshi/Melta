@@ -1,0 +1,492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yanqirenshi/Tyggja/schema/structure-part.schema.json",
+  "title": "Tyggja structure/original/ の分けたファイル",
+  "description": "tyggja structure が structure/original/ に書き出す（ほかの版 structure/<別の名前>/ も同じ形式を使う想定の）、セクション単位のファイル（001_front.json、002_s1.json など）の形式。本文を「セクション（入れ子）→ パラグラフ → センテンス」で持ち、各要素に ID と元ページへの参照（source）がある。子セクションを別のファイルに分けたときは、section_ref で参照する。最初の見出しより前の本文のファイル（id が null）は、body に本文の要素が直接並ぶ。それ以外のファイルは、body が section 1 つ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。このスキーマでは確かめられない約束（ID が structure/ 全体で重複しない、section_ref の先のファイルがある、index.json の files と実際のファイルが合う、など）は、tyggja の load_structure が確かめます。",
+  "type": "object",
+  "properties": {
+    "version": {
+      "description": "structure/ の形式の版。このスキーマは 2。",
+      "const": 2
+    },
+    "file": {
+      "description": "このファイルの名前。読み順の連番とセクション ID（例: 015_s10.1.json、先頭の本文は 001_front.json）。",
+      "type": "string",
+      "pattern": "^[0-9]{3,}_(front|s[0-9]+(\\.[0-9]+)*)\\.json$"
+    },
+    "id": {
+      "description": "ファイルの先頭のセクションの ID。最初の見出しより前の本文のファイルは null。",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/sectionId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ancestors": {
+      "type": "array",
+      "description": "ファイルの先頭のセクションより上の見出し（外側から順）。最上位のセクションと front は空。",
+      "items": {
+        "type": "object",
+        "description": "上位の見出し 1 つ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/sectionId"
+          },
+          "level": {
+            "description": "セクションの階層。1 が最上位（HTML の h2 / Markdown の ## に当たる）。",
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "description": "見出しの本文。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "level",
+          "title"
+        ]
+      }
+    },
+    "body": {
+      "type": "array",
+      "description": "ファイルの内容。id が null のファイルは本文の要素が直接並び、それ以外は先頭のセクション 1 つ。"
+    }
+  },
+  "required": [
+    "version",
+    "file",
+    "id",
+    "ancestors",
+    "body"
+  ],
+  "if": {
+    "properties": {
+      "id": {
+        "type": "null"
+      }
+    },
+    "required": [
+      "id"
+    ]
+  },
+  "then": {
+    "properties": {
+      "ancestors": {
+        "maxItems": 0
+      },
+      "body": {
+        "type": "array",
+        "description": "最初の見出しより前の本文の要素（読み順）。セクションは含まない。",
+        "items": {
+          "$ref": "#/$defs/frontNode"
+        }
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "body": {
+        "type": "array",
+        "description": "先頭のセクション 1 つ。",
+        "items": {
+          "$ref": "#/$defs/section"
+        },
+        "minItems": 1,
+        "maxItems": 1
+      }
+    }
+  },
+  "$defs": {
+    "sectionId": {
+      "description": "セクションの ID。出現順の連番で、入れ子の深さだけ「.」で区切る（s1 / s1.2 / s10.1.1）。ID は structure を実行したときに決まる名前で、位置を表す番号ではない。",
+      "type": "string",
+      "pattern": "^s[0-9]+(\\.[0-9]+)*$"
+    },
+    "source": {
+      "type": "array",
+      "description": "元の本のどこから来たかを辿る参照の一覧。各要素は「ページID#ブロック番号」（例: p006_1#2）で、ページID は book.json の pages[].id、ブロック番号はそのページの blocks の位置（0 から）。ページをまたいでつないだ段落は、複数の参照を持つ。",
+      "items": {
+        "description": "ページID#ブロック番号",
+        "type": "string",
+        "pattern": "^p[0-9]+_[0-9]+#[0-9]+$"
+      },
+      "minItems": 1
+    },
+    "sentence": {
+      "type": "object",
+      "description": "センテンス。段落や箇条書きの項目の本文を持つ唯一の場所（パラグラフや項目に text は無い）。センテンスの text を順に連結すると、元の段落になる。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "id": {
+          "description": "センテンスの ID。段落のセンテンスは p12.3、箇条書きのセンテンスは l1.2.3（l<箇条書き>.<項目>.<文>）。版を編集して文を足すときは、その段落（項目）でまだ使っていない番号を付ける。消した ID は使い回さない。並び順は配列の順で決まり、ID の大小は関係ない。",
+          "type": "string",
+          "pattern": "^(p[0-9]+\\.[0-9]+|l[0-9]+\\.[0-9]+\\.[0-9]+)$"
+        },
+        "text": {
+          "description": "センテンスの本文。文末の記号（。！？）のほか、区切りの後ろの空白や改行を末尾に含むことがある。",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ]
+    },
+    "section": {
+      "type": "object",
+      "description": "セクション（見出しとその下の内容）。children に、子セクションや本文の要素が読み順に並ぶ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "section"
+        },
+        "id": {
+          "$ref": "#/$defs/sectionId"
+        },
+        "level": {
+          "description": "セクションの階層。1 が最上位（HTML の h2 / Markdown の ## に当たる）。",
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "description": "見出しの本文。",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "children": {
+          "type": "array",
+          "description": "セクションの中身（読み順）。入れ子の子セクションは section か、別ファイルに分けてあれば section_ref。",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/section"
+              },
+              {
+                "$ref": "#/$defs/section_ref"
+              },
+              {
+                "$ref": "#/$defs/paragraph"
+              },
+              {
+                "$ref": "#/$defs/list"
+              },
+              {
+                "$ref": "#/$defs/figure"
+              },
+              {
+                "$ref": "#/$defs/caption"
+              },
+              {
+                "$ref": "#/$defs/table"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "level",
+        "title",
+        "source",
+        "children"
+      ]
+    },
+    "section_ref": {
+      "type": "object",
+      "description": "別のファイルに分けた子セクションへの参照。file の先のファイルの body の先頭が、その子セクション。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "section_ref"
+        },
+        "id": {
+          "$ref": "#/$defs/sectionId"
+        },
+        "level": {
+          "description": "セクションの階層。1 が最上位（HTML の h2 / Markdown の ## に当たる）。",
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "description": "子セクションの見出しの本文（参照先を開かずに目次が作れるように写してある）。",
+          "type": "string"
+        },
+        "file": {
+          "description": "子セクションが入っているファイルの名前（同じ版のフォルダ、structure/original/ などの中。例: 016_s10.1.1.json）。",
+          "type": "string",
+          "pattern": "^[0-9]{3,}_(front|s[0-9]+(\\.[0-9]+)*)\\.json$"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "level",
+        "title",
+        "file"
+      ]
+    },
+    "paragraph": {
+      "type": "object",
+      "description": "パラグラフ（段落）。本文は sentences にあり、パラグラフ自身は text を持たない。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "paragraph"
+        },
+        "id": {
+          "description": "パラグラフの ID（p12）。",
+          "type": "string",
+          "pattern": "^p[0-9]+$"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "sentences": {
+          "type": "array",
+          "description": "段落のセンテンス（読み順）。",
+          "items": {
+            "$ref": "#/$defs/sentence"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source",
+        "sentences"
+      ]
+    },
+    "list": {
+      "type": "object",
+      "description": "箇条書き。連続する項目を 1 つにまとめたもの。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "list"
+        },
+        "id": {
+          "description": "箇条書きの ID（l3）。",
+          "type": "string",
+          "pattern": "^l[0-9]+$"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "items": {
+          "type": "array",
+          "description": "箇条書きの項目（読み順）。",
+          "items": {
+            "type": "object",
+            "description": "箇条書きの項目。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+            "properties": {
+              "id": {
+                "description": "項目の ID（l3.2）。",
+                "type": "string",
+                "pattern": "^l[0-9]+\\.[0-9]+$"
+              },
+              "source": {
+                "$ref": "#/$defs/source"
+              },
+              "sentences": {
+                "type": "array",
+                "description": "項目のセンテンス（読み順）。",
+                "items": {
+                  "$ref": "#/$defs/sentence"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "source",
+              "sentences"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source",
+        "items"
+      ]
+    },
+    "figure": {
+      "type": "object",
+      "description": "図・写真。画像は figures/ に切り出してあり、src で参照する。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "figure"
+        },
+        "id": {
+          "description": "図の ID（f4）。",
+          "type": "string",
+          "pattern": "^f[0-9]+$"
+        },
+        "src": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "画像ファイルの場所（出力フォルダからの相対パス。例: figures/p021_1_0.png。structure/original/ から見ると ../../figures/p021_1_0.png）。画像が無いときは null。"
+        },
+        "text": {
+          "type": "array",
+          "description": "図の中に書かれている文字（OCR の結果）。",
+          "items": {
+            "description": "図の中の 1 まとまりの文字。",
+            "type": "string"
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "src",
+        "text",
+        "source"
+      ]
+    },
+    "caption": {
+      "type": "object",
+      "description": "図表の説明（キャプション）。見出しに見えても図・表と数字で始まるものはここに入る。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "caption"
+        },
+        "id": {
+          "description": "図表の説明の ID（c2）。",
+          "type": "string",
+          "pattern": "^c[0-9]+$"
+        },
+        "text": {
+          "description": "図表の説明の本文。",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "text",
+        "source"
+      ]
+    },
+    "table": {
+      "type": "object",
+      "description": "表。セルを行・列の位置つきで並べた形で、結合は row_span / col_span で表す。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+      "properties": {
+        "type": {
+          "description": "要素の種類。",
+          "const": "table"
+        },
+        "id": {
+          "description": "表の ID（t5）。",
+          "type": "string",
+          "pattern": "^t[0-9]+$"
+        },
+        "n_row": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "OCR が数えた行数。分からないときは null。セルの位置から求めた大きさと違うことがある。"
+        },
+        "n_col": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "OCR が数えた列数。分からないときは null。"
+        },
+        "cells": {
+          "type": "array",
+          "description": "表のセル（行・列の順）。結合で隠れるマスはセルを持たない。",
+          "items": {
+            "type": "object",
+            "description": "表のセル 1 つ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。",
+            "properties": {
+              "row": {
+                "description": "行の位置（0 から）。",
+                "type": "integer",
+                "minimum": 0
+              },
+              "col": {
+                "description": "列の位置（0 から）。",
+                "type": "integer",
+                "minimum": 0
+              },
+              "row_span": {
+                "description": "行方向に結合しているマス数（結合なしは 1）。",
+                "type": "integer",
+                "minimum": 1
+              },
+              "col_span": {
+                "description": "列方向に結合しているマス数（結合なしは 1）。",
+                "type": "integer",
+                "minimum": 1
+              },
+              "text": {
+                "description": "セルの本文。",
+                "type": "string"
+              }
+            },
+            "required": [
+              "row",
+              "col",
+              "row_span",
+              "col_span",
+              "text"
+            ]
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "n_row",
+        "n_col",
+        "cells",
+        "source"
+      ]
+    },
+    "frontNode": {
+      "description": "最初の見出しより前の本文に置ける要素。",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/paragraph"
+        },
+        {
+          "$ref": "#/$defs/list"
+        },
+        {
+          "$ref": "#/$defs/figure"
+        },
+        {
+          "$ref": "#/$defs/caption"
+        },
+        {
+          "$ref": "#/$defs/table"
+        }
+      ]
+    }
+  }
+}

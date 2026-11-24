@@ -1,0 +1,17 @@
+{
+ "version": 2,
+ "file": "001_front.json",
+ "id": null,
+ "ancestors": [],
+ "body": [
+  {
+   "type": "paragraph",
+   "id": "p1",
+   "source": ["p001_1#0"],
+   "sentences": [
+    {"id": "p1.1", "text": "これはテスト用の本です。"},
+    {"id": "p1.2", "text": "見出しより前の本文です。"}
+   ]
+  }
+ ]
+}

@@ -1,4 +1,5 @@
-node_modules/
-dist/
-*.local
-*.tsbuildinfo
+/target
+
+# src/parmaflora/ から手でコピーした、試行用の写し
+/.claude/agents/
+/.claude/skills/
