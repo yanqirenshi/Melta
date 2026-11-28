@@ -1,0 +1,17 @@
+{
+ "version": 2,
+ "file": "002_s1.json",
+ "id": "s1",
+ "ancestors": [],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1",
+   "level": 1,
+   "title": "第1章 はじめの章",
+   "source": [
+    "p0001_0#2"
+   ]
+  }
+ ]
+}

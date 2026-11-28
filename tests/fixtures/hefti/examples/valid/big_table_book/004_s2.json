@@ -1,0 +1,25 @@
+{
+ "version": 2,
+ "file": "004_s2.json",
+ "id": "s2",
+ "ancestors": [],
+ "body": [
+  {
+   "type": "section",
+   "id": "s2",
+   "level": 1,
+   "title": "第2章 次の章",
+   "source": ["p0001_0#7"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p4",
+     "source": ["p0001_0#8"],
+     "sentences": [
+      {"id": "p4.1", "text": "短い。"}
+     ]
+    }
+   ]
+  }
+ ]
+}

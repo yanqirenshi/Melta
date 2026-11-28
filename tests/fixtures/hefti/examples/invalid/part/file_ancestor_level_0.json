@@ -1,0 +1,86 @@
+{
+ "version": 2,
+ "file": "004_s1.1.1.json",
+ "id": "s1.1.1",
+ "ancestors": [
+  {
+   "id": "s1",
+   "level": 0,
+   "title": "第1章 はじめの章"
+  },
+  {
+   "id": "s1.1",
+   "level": 2,
+   "title": "1.1 最初の節"
+  }
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.1.1",
+   "level": 3,
+   "title": "1.1.1 深い項",
+   "source": [
+    "p0002_0#0"
+   ],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p4",
+     "source": [
+      "p0002_0#1"
+     ],
+     "sentences": [
+      {
+       "id": "p4.1",
+       "text": "項の段落。"
+      },
+      {
+       "id": "p4.2",
+       "text": "深いところの文。"
+      }
+     ]
+    },
+    {
+     "type": "table",
+     "id": "t1",
+     "n_row": 2,
+     "n_col": 2,
+     "cells": [
+      {
+       "row": 0,
+       "col": 0,
+       "row_span": 1,
+       "col_span": 1,
+       "text": "見出しA"
+      },
+      {
+       "row": 0,
+       "col": 1,
+       "row_span": 1,
+       "col_span": 1,
+       "text": "見出しB"
+      },
+      {
+       "row": 1,
+       "col": 0,
+       "row_span": 1,
+       "col_span": 1,
+       "text": "値1"
+      },
+      {
+       "row": 1,
+       "col": 1,
+       "row_span": 1,
+       "col_span": 1,
+       "text": "値2"
+      }
+     ],
+     "source": [
+      "p0002_0#2"
+     ]
+    }
+   ]
+  }
+ ]
+}

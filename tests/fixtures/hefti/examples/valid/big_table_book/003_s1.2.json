@@ -1,0 +1,27 @@
+{
+ "version": 2,
+ "file": "003_s1.2.json",
+ "id": "s1.2",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "第1章 表の章"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.2",
+   "level": 2,
+   "title": "1.2 短い節",
+   "source": ["p0001_0#5"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p3",
+     "source": ["p0001_0#6"],
+     "sentences": [
+      {"id": "p3.1", "text": "短い。"}
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "version": 2,
+ "file": "001_front.json",
+ "id": null,
+ "ancestors": [],
+ "body": [
+  {
+   "type": "paragraph",
+   "id": "p1",
+   "source": [
+    "p0001_0#1"
+   ]
+  }
+ ]
+}

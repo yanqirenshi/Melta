@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/yanqirenshi/Tyggja/schema/structure-part.schema.json",
-  "title": "Tyggja structure/original/ の分けたファイル",
-  "description": "tyggja structure が structure/original/ に書き出す（ほかの版 structure/<別の名前>/ も同じ形式を使う想定の）、セクション単位のファイル（001_front.json、002_s1.json など）の形式。本文を「セクション（入れ子）→ パラグラフ → センテンス」で持ち、各要素に ID と元ページへの参照（source）がある。子セクションを別のファイルに分けたときは、section_ref で参照する。最初の見出しより前の本文のファイル（id が null）は、body に本文の要素が直接並ぶ。それ以外のファイルは、body が section 1 つ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。このスキーマでは確かめられない約束（ID が structure/ 全体で重複しない、section_ref の先のファイルがある、index.json の files と実際のファイルが合う、など）は、tyggja の load_structure が確かめます。",
+  "$id": "https://github.com/yanqirenshi/Hefti/schema/structure-part.schema.json",
+  "title": "structure/<版>/ の分けたファイル",
+  "description": "書籍の構造化 JSON（structure/<版>/）の、セクション単位のファイル（001_front.json、002_s1.json など）の形式。本文を「セクション（入れ子）→ パラグラフ → センテンス」で持ち、各要素に ID と元ページへの参照（source）がある。子セクションを別のファイルに分けたときは、section_ref で参照する。最初の見出しより前の本文のファイル（id が null）は、body に本文の要素が直接並ぶ。それ以外のファイルは、body が section 1 つ。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。このスキーマでは確かめられない約束（ID が structure/ 全体で重複しない、section_ref の先のファイルがある、index.json の files と実際のファイルが合う、など）は、読み込む側のプログラムが確かめます。",
   "type": "object",
   "properties": {
     "version": {

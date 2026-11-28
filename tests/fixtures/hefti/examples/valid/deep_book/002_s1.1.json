@@ -1,0 +1,29 @@
+{
+ "version": 2,
+ "file": "002_s1.1.json",
+ "id": "s1.1",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "深さ1の見出し"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.1",
+   "level": 2,
+   "title": "深さ2の見出し",
+   "source": ["p0001_0#2"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p2",
+     "source": ["p0001_0#3"],
+     "sentences": [
+      {"id": "p2.1", "text": "深さ2の段落。"},
+      {"id": "p2.2", "text": "二文目。"}
+     ]
+    },
+    {"type": "section_ref", "id": "s1.1.1", "level": 3, "title": "深さ3の見出し", "file": "003_s1.1.1.json"}
+   ]
+  }
+ ]
+}
