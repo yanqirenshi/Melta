@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/yanqirenshi/Tyggja/schema/structure-index.schema.json",
-  "title": "Tyggja structure/original/index.json",
-  "description": "tyggja structure が structure/original/ に書き出す index.json の形式（structure/ の下の版のうち、Tyggja が作る原本の版）。ほかの版（structure/<別の名前>/）も同じ形式を使う想定。全体の情報・ページの情報・ファイルの一覧・目次を持つ。分けたファイルの形式は structure-part.schema.json。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。このスキーマでは確かめられない約束（ID が structure/ 全体で重複しない、section_ref の先のファイルがある、index.json の files と実際のファイルが合う、など）は、tyggja の load_structure が確かめます。",
+  "$id": "https://github.com/yanqirenshi/Hefti/schema/structure-index.schema.json",
+  "title": "structure/<版>/index.json",
+  "description": "書籍の構造化 JSON（structure/<版>/）の index.json の形式。structure/ の下の版（OCR の結果から作る原本の original や、それを編集した版）は、どれも同じ形式を使う。全体の情報・ページの情報・ファイルの一覧・目次を持つ。分けたファイルの形式は structure-part.schema.json。知らないプロパティは許します。後工程が要素に情報を足して別の JSON にできるようにするためです（additionalProperties は false にしません）。このスキーマでは確かめられない約束（ID が structure/ 全体で重複しない、section_ref の先のファイルがある、index.json の files と実際のファイルが合う、など）は、読み込む側のプログラムが確かめます。",
   "type": "object",
   "properties": {
     "version": {

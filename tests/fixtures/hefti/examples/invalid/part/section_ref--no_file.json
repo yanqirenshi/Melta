@@ -1,0 +1,91 @@
+{
+ "version": 2,
+ "file": "002_s1.json",
+ "id": "s1",
+ "ancestors": [],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1",
+   "level": 1,
+   "title": "第1章 はじめの章",
+   "source": [
+    "p0001_0#2"
+   ],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p2",
+     "source": [
+      "p0001_0#3"
+     ],
+     "sentences": [
+      {
+       "id": "p2.1",
+       "text": "章の直下の段落。"
+      },
+      {
+       "id": "p2.2",
+       "text": "一つ目の文。"
+      },
+      {
+       "id": "p2.3",
+       "text": "二つ目の文。"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "l1",
+     "source": [
+      "p0001_0#4",
+      "p0001_0#5"
+     ],
+     "items": [
+      {
+       "id": "l1.1",
+       "source": [
+        "p0001_0#4"
+       ],
+       "sentences": [
+        {
+         "id": "l1.1.1",
+         "text": "箇条書きの一つ目。"
+        }
+       ]
+      },
+      {
+       "id": "l1.2",
+       "source": [
+        "p0001_0#5"
+       ],
+       "sentences": [
+        {
+         "id": "l1.2.1",
+         "text": "箇条書きの二つ目。"
+        },
+        {
+         "id": "l1.2.2",
+         "text": "補足の文。"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "section_ref",
+     "id": "s1.1",
+     "level": 2,
+     "title": "1.1 最初の節"
+    },
+    {
+     "type": "section_ref",
+     "id": "s1.2",
+     "level": 2,
+     "title": "1.2 二つ目の節",
+     "file": "005_s1.2.json"
+    }
+   ]
+  }
+ ]
+}

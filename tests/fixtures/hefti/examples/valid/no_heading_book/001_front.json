@@ -1,0 +1,39 @@
+{
+ "version": 2,
+ "file": "001_front.json",
+ "id": null,
+ "ancestors": [],
+ "body": [
+  {
+   "type": "paragraph",
+   "id": "p1",
+   "source": ["p0001_0#0"],
+   "sentences": [
+    {"id": "p1.1", "text": "一つ目の段落。"},
+    {"id": "p1.2", "text": "二文目。"}
+   ]
+  },
+  {
+   "type": "list",
+   "id": "l1",
+   "source": ["p0001_0#1"],
+   "items": [
+    {
+     "id": "l1.1",
+     "source": ["p0001_0#1"],
+     "sentences": [
+      {"id": "l1.1.1", "text": "項目。"}
+     ]
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "id": "p2",
+   "source": ["p0002_0#0"],
+   "sentences": [
+    {"id": "p2.1", "text": "別のページの段落。"}
+   ]
+  }
+ ]
+}

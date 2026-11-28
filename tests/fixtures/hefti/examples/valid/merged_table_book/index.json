@@ -1,0 +1,15 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "aa9215fc27f90f3452312ddde700f7fe2b4bed914298ad3628a513da66e356f7"},
+ "split_chars": 12000,
+ "pages": [
+  {"id": "p0001_0", "status": "ok", "decorations": []}
+ ],
+ "files": [
+  {"file": "001_s1.json", "id": "s1", "chars": 8, "json_chars": 790}
+ ],
+ "toc": [
+  {"id": "s1", "level": 1, "title": "第1章 表", "file": "001_s1.json", "children": []}
+ ]
+}

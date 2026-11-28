@@ -1,0 +1,9 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "86a4535ef9b985c3bc766f529c72cc67ba286de05517e7cf9216165511053656"},
+ "split_chars": 12000,
+ "pages": [],
+ "files": [],
+ "toc": []
+}

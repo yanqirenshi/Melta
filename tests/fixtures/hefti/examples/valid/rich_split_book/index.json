@@ -1,0 +1,47 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "7f347e4d64e748a7d704169abd0003f26c060b1aa68862006f9f151dd7f9954b"},
+ "split_chars": 300,
+ "pages": [
+  {"id": "p0001_0", "status": "ok", "decorations": [{"type": "header", "text": "柱：テストの本"}, {"type": "footer", "text": "1"}]},
+  {
+   "id": "p0003_0",
+   "status": "ok",
+   "decorations": [
+    {"type": "header", "text": "柱：第1章"},
+    {"type": "footer", "text": "3"},
+    {"type": "index", "text": "索引用の印"}
+   ]
+  },
+  {"id": "p0004_0", "status": "ocr_failed", "decorations": []},
+  {"id": "p0005_0", "status": "ok", "decorations": [{"type": "footer", "text": "5"}]}
+ ],
+ "files": [
+  {"file": "001_front.json", "id": null, "chars": 18, "json_chars": 270},
+  {"file": "002_s1.json", "id": "s1", "chars": 28, "json_chars": 557},
+  {"file": "003_s1.1.json", "id": "s1.1", "chars": 109, "json_chars": 2039},
+  {"file": "004_s1.1.1.json", "id": "s1.1.1", "chars": 18, "json_chars": 492},
+  {"file": "005_s2.json", "id": "s2", "chars": 25, "json_chars": 385}
+ ],
+ "toc": [
+  {
+   "id": "s1",
+   "level": 1,
+   "title": "第1章 はじめの章",
+   "file": "002_s1.json",
+   "children": [
+    {
+     "id": "s1.1",
+     "level": 2,
+     "title": "1.1 最初の節",
+     "file": "003_s1.1.json",
+     "children": [
+      {"id": "s1.1.1", "level": 3, "title": "1.1.1 さらに深い項", "file": "004_s1.1.1.json", "children": []}
+     ]
+    }
+   ]
+  },
+  {"id": "s2", "level": 1, "title": "第2章 次の章", "file": "005_s2.json", "children": []}
+ ]
+}

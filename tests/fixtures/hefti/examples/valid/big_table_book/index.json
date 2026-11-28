@@ -1,0 +1,28 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "c2c43ca9a72815c0bf4e5373ff5b620308cb216c803601e39a12d06bc1e55718"},
+ "split_chars": 12000,
+ "pages": [
+  {"id": "p0001_0", "status": "ok", "decorations": []}
+ ],
+ "files": [
+  {"file": "001_s1.json", "id": "s1", "chars": 9, "json_chars": 572},
+  {"file": "002_s1.1.json", "id": "s1.1", "chars": 14, "json_chars": 14128},
+  {"file": "003_s1.2.json", "id": "s1.2", "chars": 9, "json_chars": 424},
+  {"file": "004_s2.json", "id": "s2", "chars": 9, "json_chars": 369}
+ ],
+ "toc": [
+  {
+   "id": "s1",
+   "level": 1,
+   "title": "第1章 表の章",
+   "file": "001_s1.json",
+   "children": [
+    {"id": "s1.1", "level": 2, "title": "1.1 大きな表の節", "file": "002_s1.1.json", "children": []},
+    {"id": "s1.2", "level": 2, "title": "1.2 短い節", "file": "003_s1.2.json", "children": []}
+   ]
+  },
+  {"id": "s2", "level": 1, "title": "第2章 次の章", "file": "004_s2.json", "children": []}
+ ]
+}

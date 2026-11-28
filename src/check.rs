@@ -5,6 +5,8 @@ use serde_json::Value;
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 
+// スキーマは Hefti（@yanqirenshi/hefti）から取り込んだもの。直接は書き換えず、`scripts/sync-schema.sh` で更新する。
+// 取り込んだ版は `schema/HEFTI_VERSION`。
 const INDEX_SCHEMA: &str = include_str!("../schema/structure-index.schema.json");
 const PART_SCHEMA: &str = include_str!("../schema/structure-part.schema.json");
 

@@ -1,0 +1,28 @@
+{
+ "version": 2,
+ "file": "005_s1.2.json",
+ "id": "s1.2",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "第1章 はじめの章"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.2",
+   "level": 2,
+   "title": "1.2 二つ目の節",
+   "source": ["p0002_0#3"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p5",
+     "source": ["p0002_0#4"],
+     "sentences": [
+      {"id": "p5.1", "text": "二つ目の節の段落。"},
+      {"id": "p5.2", "text": "最後の文。"}
+     ]
+    }
+   ]
+  }
+ ]
+}

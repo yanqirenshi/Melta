@@ -1,0 +1,28 @@
+{
+ "version": 2,
+ "file": "004_s1.1.1.json",
+ "id": "s1.1.1",
+ "ancestors": [
+  {"id": "s1", "level": 1, "title": "第1章 はじめの章"},
+  {"id": "s1.1", "level": 2, "title": "1.1 最初の節"}
+ ],
+ "body": [
+  {
+   "type": "section",
+   "id": "s1.1.1",
+   "level": 3,
+   "title": "1.1.1 さらに深い項",
+   "source": ["p0005_0#0"],
+   "children": [
+    {
+     "type": "paragraph",
+     "id": "p4",
+     "source": ["p0005_0#1"],
+     "sentences": [
+      {"id": "p4.1", "text": "深い項の段落。"}
+     ]
+    }
+   ]
+  }
+ ]
+}

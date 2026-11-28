@@ -1,0 +1,25 @@
+{
+ "version": 2,
+ "file": "001_front.json",
+ "id": null,
+ "ancestors": [],
+ "body": [
+  {
+   "type": "chapter",
+   "id": "p1",
+   "source": [
+    "p0001_0#1"
+   ],
+   "sentences": [
+    {
+     "id": "p1.1",
+     "text": "まえおきの段落。"
+    },
+    {
+     "id": "p1.2",
+     "text": "見出しより前の本文である。"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "version": 2,
+ "title": "テストの本",
+ "source": {"book": "book.json", "sha256": "fb11afa0d0568baabd831a45bd64d8e96780157a0a2b61a3cd299a4c802cad6a"},
+ "split_chars": 12000,
+ "pages": [
+  {"id": "p0001_0", "status": "ok", "decorations": []},
+  {"id": "p0002_0", "status": "ok", "decorations": []}
+ ],
+ "files": [
+  {"file": "001_front.json", "id": null, "chars": 23, "json_chars": 618}
+ ],
+ "toc": []
+}
